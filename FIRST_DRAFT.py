@@ -9,10 +9,12 @@ GPIO.setmode(GPIO.BOARD)
 motor_pin1 = 11
 motor_pin2 = 12
 pwm_pin = 18
+
 # Configurar pines como salida
 GPIO.setup(motor_pin1, GPIO.OUT)
 GPIO.setup(motor_pin2, GPIO.OUT)
 GPIO.setup(pwm_pin, GPIO.OUT)
+
 # Inicializar PWM
 pwm = GPIO.PWM(pwm_pin, 100)  # Frecuencia de PWM de 100 Hz
 pwm.start(0)  # Iniciar PWM con ciclo de trabajo del 0%
