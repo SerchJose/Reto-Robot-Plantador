@@ -9,3 +9,5 @@ while True:
     arreglo=dato_recibido.split("@")
     print(arreglo)
     print("La lectura ", arreglo[2])
+    
+    
