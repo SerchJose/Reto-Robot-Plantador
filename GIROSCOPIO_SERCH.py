@@ -1,4 +1,4 @@
-# IMPORTS
+# Imports
 import smbus
 import time
 import math
