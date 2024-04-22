@@ -1,76 +1,89 @@
 from customtkinter import *
-from PIL import ImageTk, Image #Importasr libreria para imagenes
+import PIL.Image as im
+import PIL.ImageTk as imtk 
 from tkinter import *
 
 #Configuraciones globales de la UI
 set_appearance_mode("System")  # Modes: system (default), light, dark
 set_default_color_theme("blue")  # Themes: blue (default), dark-blue, green
+set_widget_scaling(1.0)  # widget dimensions and text size
+set_window_scaling(1.0)  # window geometry dimensions
+
+def v2():
+    app.withdraw()
+    v2=CTkToplevel(app)
+    v2.title("Tipo de control")
+    v2.geometry("1200x700")
+    v2.resizable(0,0)
+    btn1 = CTkButton(v2, text="Modo Manual", corner_radius=10, hover_color="grey", 
+                 fg_color="transparent", border_color="white", bg_color="transparent")
+    btn2 = CTkButton(v2, text="Modo Automático", corner_radius=10, hover_color="grey",       
+                 fg_color="transparent", border_color="white", bg_color="transparent")
+    
+    btn3 = CTkButton(v2, text="Salir", border_color="#FFCC70", command=app.destroy)
+    
+    btn1.place(relx=0.4, rely=0.3, anchor="center")
+    btn2.place(relx=0.6, rely=0.3, anchor="center")
+    btn3.place(relx=0.5, rely=0.5, anchor="center")
+
+    v2.mainloop()
+
 
 # Definir Ventana
 app = CTk()
 app.title("MyanSpace | Robot plantador")
-app.geometry("800x500")
+app.geometry("500x300")
 # app.minsize(500, 500) # Tamaño minimo de la ventana
-# ventana.resizable(0,0) # Bloquear redimensionar ventana manual
+app.resizable(0,0) # Bloquear redimensionar ventana manual
 
 # logo = CTkImage(
-#             # light_image=Image.open('./Imagenes/f2.jpeg'), # Imagen modo claro
-#             dark_image=Image.open('./Imagenes/LoginFondo.webp') # Imagen modo oscuro
-#             # size=(800, 500)# Tamaño de las imágenes
-# )
+#             light_image = PIL.Image.open('./Imagenes/f4.png'), # Imagen modo claro
+#             dark_image = PIL.Image.open('./Imagenes/f4.png')) # Imagen modo oscuro
 
-bg = PhotoImage(file='./Imagenes/f4.png')
+bg = imtk.PhotoImage(file='./Imagenes/f4.png')
    
-# Crear un Canvas
+# Crear un Canvas 
 canvas = CTkCanvas(app, width=800, height=500)
 canvas.pack(fill="both", expand=True)
 
 # # Poner imagen en el canvas
 canvas.create_image(0,0, image=bg, anchor="nw")        
 
-# # Etiqueta para mostrar la imagen
-# etiqueta = CTkLabel(master=app, image=logo, text="")
-# etiqueta.place(relheight=1, relwidth=1)
+# Poner una etiqueta
+canvas.create_text(325, 100, text="MayanSpace Robot", font=("Helvet", 20), fill="white")
 
-# # btn = CTkButton(master=app, text="CTkButton", corner_radius=10, hover_color="black", fg_color="transparent")
-# # btn.place(relx=0.5, rely=0.5, anchor="center")
+#Poner botones
+btn1 = CTkButton(app, text="Inicio", corner_radius=10, hover_color="grey", 
+                 fg_color="transparent", bg_color="transparent", width=10, height=10, command=v2)
+btn2 = CTkButton(app, text="Salir", corner_radius=10, hover_color="grey", 
+                 fg_color="transparent", bg_color="transparent", width=15, height=10, command=app.destroy)
 
-# btn = CTkButton(master=app, text="Iniciar", corner_radius=10, hover_color="grey", fg_color="transparent", bg_color="transparent")
-# btn.pack(pady=100)
+btn1_w = canvas.create_window(225, 300, anchor="nw", window=btn1)
+btn2_w = canvas.create_window(325, 300, anchor="nw", window=btn2)
 
-# # Campos de texto
-# # Usuario
-# CTkLabel(app, text="Usuario").pack()
-# usuario = CTkEntry(app)
-# usuario.insert(0, "Nombre de usuario")
-# usuario.bind("<Button-1>", lambda e: usuario.delete(0, 'end'))
-# usuario.pack()
+#----------------------------------------------------------------
 
-# # Contraseña
-# CTkLabel(app, text="Contraseña").pack()
-# contrasena = CTkEntry(app)
-# contrasena.insert(0, "*******")
-# contrasena.bind("<Button-1>", lambda e: contrasena.delete(0, 'end'))
-# contrasena.pack()
+# # Create a function to display other widgets on background 
+# def display_widgets(): 
+#     # Write some text on the image 
+#     canvas.create_text(300, 100, text="MayanSpace Robot", font=("Helvet", 20), fill="white")
 
+# # Función de redimensionar 
+# def resizer(e):
+#     global bg1, resized_bg, new_bg
+#     # Abrir imagen
+#     bg1 = im.open('./Imagenes/f4.png')
+#     # Call the resize_image function 
+#     resized_bg = bg1.resize((e.width, e.height), im.ANTIALIAS)
+#     # Definir nueva imagen
+#     new_bg = imtk.PhotoImage(resized_bg)
+#     # Añadir de nuevo al canvas
+#     canvas.create_image(0,0, image=new_bg, anchor="nw")     
+#     # Añadir de nuevo el texto
+#     display_widgets() 
 
-# # Menu
-# menu = Menu(ventana) # Crear un menu dentro de "ventana"
-
-# ventana.config(menu=menu) # Cargar el menu a la ventana
-
-# archivo = Menu(menu, tearoff=0) # Crear un menu dentro de "mi_menu"
-# archivo.add_command(label="Nuevo") # Añadir elementos al menu "archivo"
-# archivo.add_command(label="Abrir")
-# archivo.add_separator() # Añadir un separador dentro del menu "archivo"
-# archivo.add_command(label="Guardar")
-# archivo.add_command(label="Guardar Como")
-# archivo.add_separator()
-# archivo.add_command(label="Salir", command=ventana.quit) # "command=ventana.quit" es para cerrar la ventana
-
-# mi_menu.add_cascade(label="Archivo", menu=archivo) # Añadir elementos de menu desplegables a "mi_menu"
-# mi_menu.add_command(label="Editar") # Añadir un elemento al menu "mi_menu"
-# mi_menu.add_command(label="Seleccionar")
+# # Redimensionar cosas en la ventana
+# app.bind('<Configure>', resizer)
 
 # Cargar Ventana
 app.mainloop()
