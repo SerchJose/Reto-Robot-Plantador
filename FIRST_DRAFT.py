@@ -1,6 +1,10 @@
+# Importar la clase mpu6050 del módulo mpu6050
 from mpu6050 import mpu6050
+# Importar el módulo RPi.GPIO para controlar los pines GPIO de la Raspberry Pi
 import RPi.GPIO as GPIO
+# Importar el módulo time para manejar el tiempo
 import time
+# Importar los módulos signal y sys para manejar señales y terminar el programa de manera segura
 import signal
 import sys
 
@@ -9,17 +13,15 @@ GPIO.setmode(GPIO.BOARD)
 motor_pin1 = 11
 motor_pin2 = 12
 pwm_pin = 18
-
 # Configurar pines como salida
 GPIO.setup(motor_pin1, GPIO.OUT)
 GPIO.setup(motor_pin2, GPIO.OUT)
 GPIO.setup(pwm_pin, GPIO.OUT)
-
 # Inicializar PWM
 pwm = GPIO.PWM(pwm_pin, 100)  # Frecuencia de PWM de 100 Hz
 pwm.start(0)  # Iniciar PWM con ciclo de trabajo del 0%
 
-# Inicialización del sensor de giroscopio
+# Inicialización del sensor de giroscopio con dirección I2C 0x68
 sensor = mpu6050(0x68)
 
 # Parámetros del controlador PID
@@ -59,10 +61,10 @@ def signal_handler(sig, frame):
     GPIO.cleanup()
     sys.exit(0)
 
-# Registra el manejador de señales
+# Registra el manejador de señales para la señal SIGINT (Ctrl+C)
 signal.signal(signal.SIGINT, signal_handler)
 
-# Bucle de control
+# Bucle de control principal
 try:
     while True:
         # Leer datos del sensor de giroscopio
@@ -87,4 +89,5 @@ except Exception as e:
     print("Error:", e)
 
 finally:
+    # Limpiar configuraciones de pines GPIO al salir del programa
     GPIO.cleanup()
