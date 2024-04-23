@@ -34,6 +34,6 @@ try:
     while True:
         inclinacion_x, inclinacion_y = obtener_inclinacion(offset_x, offset_y, offset_z)
         print(f'Ángulo de inclinación X: {inclinacion_x} grados, Ángulo de inclinación Y: {inclinacion_y} grados')
-        time.sleep(0.1)  # Espera 100ms antes de la siguiente lectura
+        time.sleep(1)  # Espera 100ms antes de la siguiente lectura
 except KeyboardInterrupt:
-    print('Programa detenido por el usuario')
+    print('Programa detenido por el usuario')
