@@ -1,10 +1,12 @@
 import cv2
 from PIL import Image
-from util import get_limits
+from util1 import get_limits
 
 yellow = [0, 255, 255]  # yellow in BGR colorspace
 cap = cv2.VideoCapture(0) #External
 #cap1 = cv2.VideoCapture(0) #Webcam
+x=0
+y=0
 
 while True:
     #External
@@ -17,6 +19,9 @@ while True:
     if bbox is not None:
         x1, y1, x2, y2 = bbox
         frame = cv2.rectangle(frame, (x1, y1), (x2, y2), (0, 255, 0), 5)
+        x=1
+        y=200
+        print(x, y)
     cv2.imshow('frame', frame)
     cv2.imshow('mask', mask)
     if cv2.waitKey(1) & 0xFF == ord('q'):
