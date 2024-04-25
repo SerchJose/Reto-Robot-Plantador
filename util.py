@@ -9,6 +9,7 @@ def get_limits(color):
     hue = hsvC[0][0][0]  # Get the hue value
 
     # Handle red hue wrap-around
+    
     if hue >= 165:  # Upper limit for divided red hue
         lowerLimit = np.array([hue - 10, 100, 100], dtype=np.uint8)
         upperLimit = np.array([180, 255, 255], dtype=np.uint8)
@@ -18,5 +19,5 @@ def get_limits(color):
     else:
         lowerLimit = np.array([hue - 10, 100, 100], dtype=np.uint8)
         upperLimit = np.array([hue + 10, 255, 255], dtype=np.uint8)
-
+        
     return lowerLimit, upperLimit
