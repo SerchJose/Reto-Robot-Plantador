@@ -1,3 +1,5 @@
+# \git_auto.bat
+
 from customtkinter import *
 import PIL.Image as im
 import PIL.ImageTk as imtk 
