@@ -187,7 +187,7 @@ def actuador():
     global actuador
     global v5
     v5=CTkToplevel(v3)
-    v5.title("Modo automatico")
+    v5.title("Actuador sembrador")
     v5.geometry("800x400+560+240")
     v5.resizable(0,0)
     
@@ -240,7 +240,7 @@ def brazo():
     global brazo
     global v6
     v6=CTkToplevel(v3)
-    v6.title("Modo automatico")
+    v6.title("Brazo Robótico")
     v6.geometry("800x350+560+240")
     # v6.resizable(0,0)
     
