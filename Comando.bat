@@ -1,0 +1,1 @@
+sudo pip3 install adafruit-circuitpython-vl53l0x
