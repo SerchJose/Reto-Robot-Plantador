@@ -1,24 +1,18 @@
 import time
-import VL53L0X
+from vl53l0x import VL53L0X
 
-# Inicializa el sensor VL53L0X
-tof = VL53L0X.VL53L0X()
+# Create a VL53L0X object
+tof = VL53L0X()
 
-# Inicia el sensor en modo de medición continua
-tof.start_ranging(VL53L0X.VL53L0X_GOOD_ACCURACY_MODE)
+# Start ranging
+tof.start_ranging(VL53L0X.GOOD_ACCURACY_MODE)
 
+# Read distance
 try:
     while True:
-        # Realiza una nueva medición de distancia
         distance = tof.get_distance()
-
-        # Imprime la distancia en milímetros
-        print("Distancia: {} mm".format(distance))
-
-        # Espera un corto período antes de realizar la próxima medición
-        time.sleep(0.1)
-
+        print(f"Distance: {distance} mm")
+        time.sleep(0.5)
 except KeyboardInterrupt:
-    # Maneja la interrupción del teclado (Ctrl+C) para salir limpiamente
+    # Stop ranging on Ctrl+C
     tof.stop_ranging()
-    print("\nPrograma detenido por el usuario.")
