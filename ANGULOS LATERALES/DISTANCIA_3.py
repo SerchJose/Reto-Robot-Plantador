@@ -1,21 +1,22 @@
 import time
-import busio
-import adafruit_vl53l0x
+import smbus2
+import VL53L0X
 
-# Initialize I2C bus
-i2c = busio.I2C(3, 2)  # Use the correct I2C bus number for your setup (3 and 2 are just examples)
+# Initialize the I2C bus (use 1 for Raspberry Pi 4)
+bus = smbus2.SMBus(1)
 
-# Initialize the VL53L0X sensor
-vl53 = adafruit_vl53l0x.VL53L0X(i2c)
+# Create a VL53L0X object
+tof = VL53L0X.VL53L0X(i2c=bus)
 
-# Optionally adjust the measurement timing budget (in ms)
-vl53.measurement_timing_budget = 200000
+# Start ranging
+tof.start_ranging(VL53L0X.VL53L0X_GOOD_ACCURACY_MODE)
 
 # Read distance
 try:
     while True:
-        distance = vl53.range
+        distance = tof.get_distance()
         print(f"Distance: {distance} mm")
         time.sleep(0.5)
 except KeyboardInterrupt:
-    print("Stopped by User")
+    # Stop ranging on Ctrl+C
+    tof.stop_ranging()
