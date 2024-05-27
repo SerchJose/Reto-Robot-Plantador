@@ -1,6 +1,12 @@
 import RPi.GPIO as GPIO
+import time
+from mpu6050 import mpu6050
 
 # [INSERTAR AQUI PROGRAMA PARA LOS MPU]
+
+# Configurar los puertos I2C para los sensores MPU6050
+sensor_left = mpu6050(0x68)  # Dirección del sensor MPU6050 izquierdo           # REVISAR
+sensor_right = mpu6050(0x69)  # Dirección del sensor MPU6050 derecho
 
 # Configuración de los pines GPIO para los puentes H y los motores
 motor_left_pin1 = 17
@@ -83,9 +89,6 @@ while True:
 
     # Detectar el sentido de movimiento de los brazos
     arm_movement = detect_arm_movement(inclination_left, inclination_right)
-
-    # Enviar la señal a través del bus I2C
-    bus.write_byte(0x12, arm_movement)  # Dirección y valor de la señal a enviar (cambia 0x12 por la dirección del otro dispositivo)
 
     # Aplicar control PID para obtener la señal de control
     control_signal = pid_control(error)
