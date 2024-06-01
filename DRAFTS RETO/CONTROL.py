@@ -1,100 +1,130 @@
-import RPi.GPIO as GPIO
 import time
+import smbus
+import RPi.GPIO as GPIO
 from mpu6050 import mpu6050
 
-# [INSERTAR AQUI PROGRAMA PARA LOS MPU]
+# Define I2C bus
+bus = smbus.SMBus(1)
 
-# Configurar los puertos I2C para los sensores MPU6050
-sensor_left = mpu6050(0x68)  # Dirección del sensor MPU6050 izquierdo           # REVISAR
-sensor_right = mpu6050(0x69)  # Dirección del sensor MPU6050 derecho
+# Define Motor Pins
+RPWM1 = 5  # GPIO pin for motor 1 clockwise direction
+LPWM1 = 6  # GPIO pin for motor 1 counterclockwise direction
+RPWM2 = 7  # GPIO pin for motor 2 clockwise direction
+LPWM2 = 8  # GPIO pin for motor 2 counterclockwise direction
 
-# Configuración de los pines GPIO para los puentes H y los motores
-motor_left_pin1 = 17
-motor_left_pin2 = 18
-motor_right_pin1 = 23
-motor_right_pin2 = 24
-
-# Inicializar los pines GPIO
+# Initialize GPIO
 GPIO.setmode(GPIO.BCM)
-GPIO.setup(motor_left_pin1, GPIO.OUT)
-GPIO.setup(motor_left_pin2, GPIO.OUT)
-GPIO.setup(motor_right_pin1, GPIO.OUT)
-GPIO.setup(motor_right_pin2, GPIO.OUT)
+GPIO.setup(RPWM1, GPIO.OUT)
+GPIO.setup(LPWM1, GPIO.OUT)
+GPIO.setup(RPWM2, GPIO.OUT)
+GPIO.setup(LPWM2, GPIO.OUT)
 
-# Configuración de los objetos PWM para los motores
-motor_left_pwm = GPIO.PWM(motor_left_pin1, 1000)
-motor_right_pwm = GPIO.PWM(motor_right_pin1, 1000)
+# Initialize PWM
+pwm1_clockwise = GPIO.PWM(RPWM1, 1000)
+pwm1_counterclockwise = GPIO.PWM(LPWM1, 1000)
+pwm2_clockwise = GPIO.PWM(RPWM2, 1000)
+pwm2_counterclockwise = GPIO.PWM(LPWM2, 1000)
 
-# Iniciar los objetos PWM con un ciclo de trabajo del 0% para detener los motores
-motor_left_pwm.start(0)
-motor_right_pwm.start(0)
+pwm1_clockwise.start(0)
+pwm1_counterclockwise.start(0)
+pwm2_clockwise.start(0)
+pwm2_counterclockwise.start(0)
 
-# [TRADUCIR PROGRAMA DE CONTROL DE CARLOS FRANCO A PYTHON]
+# Initialize MPU6050 sensors
+mpu1 = mpu6050(0x68)
+mpu2 = mpu6050(0x69)
 
-# Parámetros del controlador PID
-Kp = 1.0  # Ganancia proporcional
-Ki = 0.1  # Ganancia integral
-Kd = 0.01  # Ganancia derivativa
+# Control system variables
+kp = 0.5
+ki = 0.01
+kd = 0.25
 
-# Variables para el controlador PID
-error_prev = 0
-integral = 0
+intError1 = 0
+prevError1 = 0
 
-# Definir un umbral para determinar el sentido de movimiento
-UMBRAL_MOVIMIENTO = 1.0  # Ajusta este valor según sea necesario                    # REVISAR
+intError2 = 0
+prevError2 = 0
 
-# Función para calcular la señal de control con el controlador PID
-def pid_control(error):
-    global integral, error_prev
-    integral += error
-    derivative = error - error_prev
-    output = Kp * error + Ki * integral + Kd * derivative
-    error_prev = error
-    return output
+def constrain(val, min_val, max_val):
+    return min(max_val, max(min_val, val))
 
-# Función para controlar los motores con la señal de control
-def control_motors(control_signal):
-    if control_signal > 0:
-        motor_left_pwm.ChangeDutyCycle(control_signal)
-        motor_right_pwm.ChangeDutyCycle(0)
-        GPIO.output(motor_left_pin2, GPIO.LOW)
-        GPIO.output(motor_right_pin2, GPIO.LOW)
-    else:
-        motor_left_pwm.ChangeDutyCycle(0)
-        motor_right_pwm.ChangeDutyCycle(-control_signal)
-        GPIO.output(motor_left_pin2, GPIO.LOW)
-        GPIO.output(motor_right_pin2, GPIO.LOW)
+try:
+    while True:
+        # Read data from the first MPU6050
+        accel_data1 = mpu1.get_accel_data()
+        gyro_data1 = mpu1.get_gyro_data()
+        temp1 = mpu1.get_temp()
 
-# Definir función para determinar el sentido de movimiento de los brazos
-def detect_arm_movement(inclination_left, inclination_right):
-    if inclination_left > inclination_right:
-        return 1  # Brazo izquierdo se abre, brazo derecho se cierra
-    elif inclination_left < inclination_right:
-        return 2  # Brazo izquierdo se cierra, brazo derecho se abre
-    else:
-        return 0  # Ambos brazos se mueven en la misma dirección o están en reposo
+        # Read data from the second MPU6050
+        accel_data2 = mpu2.get_accel_data()
+        gyro_data2 = mpu2.get_gyro_data()
+        temp2 = mpu2.get_temp()
 
-# Loop principal
-while True:
-    # Lectura de datos de los sensores MPU6050
-    gyro_left = sensor_left.get_gyro_data()
-    gyro_right = sensor_right.get_gyro_data()
+        # Extract angles
+        in_x1 = accel_data1['x']
+        in_y1 = accel_data1['y']
+        gz1 = gyro_data1['z']
 
-    # Calcular la inclinación en cada lado de la suspensión (eje z)
-    inclination_left = gyro_left['z']
-    inclination_right = gyro_right['z']
+        in_x2 = accel_data2['x']
+        in_y2 = accel_data2['y']
+        gz2 = gyro_data2['z']
 
-    # Calcular el error de inclinación entre los dos lados
-    error = inclination_left - inclination_right
+        reference = 0
+        error1 = reference - in_x1
+        error2 = reference - in_x2
 
-    # Detectar el sentido de movimiento de los brazos
-    arm_movement = detect_arm_movement(inclination_left, inclination_right)
+        print(f"MPU1 - Position: {in_x1}, Error: {error1}")
+        print(f"MPU2 - Position: {in_x2}, Error: {error2}")
 
-    # Aplicar control PID para obtener la señal de control
-    control_signal = pid_control(error)
+        # PID Controller Calculations for MPU1
+        intError1 += error1
+        derError1 = error1 - prevError1
+        control1 = kp * error1 + ki * intError1 + kd * derError1
+        control1 = constrain(control1, 0, 1)
+        prevError1 = error1
 
-    # Controlar los motores con la señal de control
-    control_motors(control_signal)
+        # PID Controller Calculations for MPU2
+        intError2 += error2
+        derError2 = error2 - prevError2
+        control2 = kp * error2 + ki * intError2 + kd * derError2
+        control2 = constrain(control2, 0, 1)
+        prevError2 = error2
 
-    # Esperar un tiempo antes de la siguiente iteración
-    time.sleep(0.1)  # Ajusta el tiempo de espera según sea necesario
+        # Controllers
+        if (error1 > 1 and error2 < -1 and error1 < 15 and error2 > -15):
+            pwm1_clockwise.ChangeDutyCycle(abs(control1) * 100)
+            pwm1_counterclockwise.ChangeDutyCycle(0)
+            pwm2_clockwise.ChangeDutyCycle(0)
+            pwm2_counterclockwise.ChangeDutyCycle(abs(control1) * 100)
+
+            print(f"Motor 1: Clockwise, Velocity: {abs(control1) * 100}")
+            print(f"Motor 2: CounterClockwise, Velocity: {abs(control1) * 100}")
+
+        elif (error1 < -1 and error2 > 1 and error1 > -15 and error2 < 15):
+            pwm1_clockwise.ChangeDutyCycle(0)
+            pwm1_counterclockwise.ChangeDutyCycle(abs(control2) * 100)
+            pwm2_clockwise.ChangeDutyCycle(abs(control2) * 100)
+            pwm2_counterclockwise.ChangeDutyCycle(0)
+
+            print(f"Motor 1: CounterClockwise, Velocity: {abs(control2) * 100}")
+            print(f"Motor 2: Clockwise, Velocity: {abs(control2) * 100}")
+
+        else:
+            pwm1_clockwise.ChangeDutyCycle(0)
+            pwm1_counterclockwise.ChangeDutyCycle(0)
+            pwm2_clockwise.ChangeDutyCycle(0)
+            pwm2_counterclockwise.ChangeDutyCycle(0)
+
+            print("Motors stopped.")
+
+        time.sleep(0.1)
+
+except KeyboardInterrupt:
+    pass
+
+finally:
+    pwm1_clockwise.stop()
+    pwm1_counterclockwise.stop()
+    pwm2_clockwise.stop()
+    pwm2_counterclockwise.stop()
+    GPIO.cleanup()
